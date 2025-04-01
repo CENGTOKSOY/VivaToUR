@@ -1,15 +1,19 @@
 <?php
+// api/add_tour.php
+require_once __DIR__ . '/../includes/db.php';
+
 header('Content-Type: application/json');
-include '../includes/db.php';
 
 $data = json_decode(file_get_contents('php://input'), true);
-$name = $data['name'];
-$description = $data['description'];
-$price = $data['price'];
 
-if (addTour($name, $description, $price)) {
+try {
+    $stmt = $conn->prepare("INSERT INTO tours (name, price) VALUES (:name, :price)");
+    $stmt->execute([
+        'name' => $data['name'],
+        'price' => $data['price']
+    ]);
+
     echo json_encode(['success' => true]);
-} else {
-    echo json_encode(['success' => false]);
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
