@@ -1,14 +1,18 @@
 <?php
-// includes/db.php
+require 'config.php';
 
-$host = 'localhost';
-$dbname = 'viva_tour';
-$user = 'postgres';
-$password = ''; // Şifreniz varsa buraya yazın
-
-try {
-    $conn = new PDO("pgsql:host=$host;dbname=$dbname", $user, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ATTR_ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    die("Veritabanı bağlantı hatası: " . $e->getMessage());
+function getTours() {
+    global $conn;
+    $stmt = $conn->query('SELECT * FROM tours');
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+function addTour($name, $description, $price) {
+    global $conn;
+    $stmt = $conn->prepare('INSERT INTO tours (name, description, price) VALUES (:name, :description, :price)');
+    $stmt->execute(['name' => $name, 'description' => $description, 'price' => $price]);
+    return $stmt->rowCount();
+}
+
+// Diğer CRUD işlemleri buraya eklenebilir.
+?>
