@@ -1,4 +1,6 @@
 <?php
+// admin/includes/config.php
+
 $host = 'localhost';
 $dbname = 'viva_tour';
 $user = 'postgres';

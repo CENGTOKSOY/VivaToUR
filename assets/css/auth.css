@@ -1,0 +1,43 @@
+.auth-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.auth-logo {
+    max-width: 150px;
+    margin-bottom: 1rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+}
+
+.checkbox-group input {
+    margin-right: 0.5rem;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 0.8rem;
+    display: block;
+    margin-top: 0.3rem;
+}
+
+.has-error input {
+    border-color: #dc3545;
+}

@@ -1,8 +1,15 @@
 <?php
 // admin/dashboard.php
-require_once 'includes/auth.php';
-?>
 
+require_once __DIR__ . '/includes/auth.php';
+
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: login.php');
+    exit;
+}
+
+?>
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -308,14 +315,5 @@ require_once 'includes/auth.php';
         </table>
     </div>
 </div>
-
-<?php
-// Çıkış işlemi
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: login.php');
-    exit;
-}
-?>
 </body>
 </html>

@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Basit kontrol (gerçek projede veritabanı sorgusu yapın)
+
     if ($username === 'admin' && $password === 'admin123') {
         $_SESSION['admin_logged_in'] = true;
         header('Location: dashboard.php');
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
 <div class="login-container">
-    <!-- Logo eklemek için (assets/images/logo.png yolunu kullanabilirsiniz) -->
+    <!-- Logo eklemek için (assets/images/logo.png yolunu kullan) -->
     <img src="../assets/images/logo.png" alt="VivaToUR Logo" class="logo">
 
     <h1>Admin Paneli Giriş</h1>
