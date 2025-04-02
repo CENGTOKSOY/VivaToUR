@@ -179,9 +179,7 @@
         <h2>8. Uygulanacak Hukuk</h2>
         <p>Bu sözleşme Türkiye Cumhuriyeti hukukuna tabidir. İstanbul Mahkemeleri yetkilidir.</p>
 
-        <a href="/pages/auth/register.php" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Kayıt Sayfasına Dön
-        </a>
+        <a href="auth/register.php" class="back-btn"><i class="fas fa-arrow-left"></i> Kayıt Sayfasına Dön</a>
     </div>
 </div>
 </body>

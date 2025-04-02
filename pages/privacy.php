@@ -170,9 +170,7 @@
 
         <p>Haklarınızı kullanmak için <a href="mailto:kvkk@vivatur.com">kvkk@vivatur.com</a> adresine e-posta gönderebilirsiniz.</p>
 
-        <a href="/pages/auth/register.php" class="back-btn">
-            <i class="fas fa-arrow-left"></i> Kayıt Sayfasına Dön
-        </a>
+        <a href="auth/register.php" class="back-btn"><i class="fas fa-arrow-left"></i> Kayıt Sayfasına Dön</a>
     </div>
 </div>
 </body>
