@@ -226,7 +226,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
             <p style="font-size: 1.2rem; margin-bottom: 2rem;">Türkiye'nin en özel kültür turlarını keşfedin</p>
             <a href="tours.php" class="btn btn-primary">Turları Keşfet</a>
             <?php if(!$isLoggedIn): ?>
-                <a href="register.php" class="btn btn-secondary">Ücretsiz Kayıt Ol</a>
+                <a href="auth/register.php" class="btn btn-secondary">Ücretsiz Kayıt Ol</a>
             <?php endif; ?>
         </div>
     </section>
