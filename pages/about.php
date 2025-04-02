@@ -1,5 +1,4 @@
 <?php
-// about.php - TAM ÇALIŞAN KOD
 require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantısı için
 ?>
 
@@ -241,10 +240,10 @@ require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantı
 </header>
 
 <nav>
-    <a href="/pages/index.php"><i class="fas fa-home"></i> Ana Sayfa</a>
-    <a href="/pages/tours.php"><i class="fas fa-umbrella-beach"></i> Turlar</a>
-    <a href="/pages/contact.php"><i class="fas fa-envelope"></i> İletişim</a>
-    <a href="/pages/about.php" class="active"><i class="fas fa-info-circle"></i> Hakkımızda</a>
+    <a href="index.php"><i class="fas fa-home"></i> Ana Sayfa</a>
+    <a href="tours.php"><i class="fas fa-umbrella-beach"></i> Turlar</a>
+    <a href="contact.php"><i class="fas fa-envelope"></i> İletişim</a>
+    <a href="about.php" class="active"><i class="fas fa-info-circle"></i> Hakkımızda</a>
 </nav>
 
 <div class="container">

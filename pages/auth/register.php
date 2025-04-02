@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($stmt->rowCount() > 0) {
                 $errors['email'] = 'Bu email zaten kayıtlı';
             } else {
-                // Kullanıcıyı kaydet
+                // Kullanıcıyı kaydetme
                 $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
                 $stmt = $conn->prepare("INSERT INTO users (name, email, password, phone, birth_date) 
                                       VALUES (?, ?, ?, ?, ?)");

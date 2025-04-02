@@ -6,7 +6,7 @@ require_once __DIR__ . '/../../includes/db.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = $_POST['email'];
 
-    // Token oluştur ve veritabanına kaydet
+    // Token oluştur ve veritabanına kaydetme
     $token = bin2hex(random_bytes(32));
     $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 

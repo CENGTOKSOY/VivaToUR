@@ -15,7 +15,7 @@ if (empty($data['tour_id'])) {
 }
 
 try {
-    // Favori var mı kontrol et
+    // Favori var mı kontrol etme
     $stmt = $conn->prepare("SELECT id FROM favorites WHERE user_id = ? AND tour_id = ?");
     $stmt->execute([$userId, $data['tour_id']]);
 

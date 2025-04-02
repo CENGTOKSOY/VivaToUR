@@ -285,7 +285,7 @@ require_once __DIR__ . '/../admin/includes/db.php'; // getTours() fonksiyonu iç
             const priceRange = document.getElementById('price-range').value;
             const date = document.getElementById('date').value;
 
-            // AJAX ile filtreleme yap
+            // AJAX ile filtreleme yapma
             fetch('../api/filter_tours.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -299,7 +299,7 @@ require_once __DIR__ . '/../admin/includes/db.php'; // getTours() fonksiyonu iç
                 });
         };
 
-        // Filtre elemanlarına event listener ekle
+        // Filtre elemanlarına event listener ekleme
         document.querySelectorAll('#tour-type, #city, #price-range, #date').forEach(el => {
             el.addEventListener('change', filterTours);
         });

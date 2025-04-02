@@ -4,7 +4,7 @@ require_once __DIR__ . '/../admin/includes/config.php';
 require_once __DIR__ . '/../admin/includes/db.php';
 session_start();
 
-// Kullanıcı giriş durumunu kontrol et
+// Kullanıcı giriş durumunu kontrol etme
 $isLoggedIn = isset($_SESSION['user_id']);
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 ?>
@@ -303,7 +303,7 @@ $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 </div>
 
 <footer>
-    <p>&copy; 2023 VivaToUR - Tüm Hakları Saklıdır</p>
+    <p>&copy; 2025 VivaToUR - Tüm Hakları Saklıdır</p>
     <div style="margin-top: 1rem;">
         <a href="#" style="color: white; margin: 0 10px;"><i class="fab fa-facebook"></i></a>
         <a href="#" style="color: white; margin: 0 10px;"><i class="fab fa-instagram"></i></a>
