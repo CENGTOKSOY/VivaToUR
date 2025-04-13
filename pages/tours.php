@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../admin/includes/config.php';
-require_once __DIR__ . '/../admin/includes/db.php'; // getTours() fonksiyonu için
+require_once __DIR__ . '/../admin/includes/admin_functions.php'; // db.php'yi direkt require etmeyin
+
+$tours = getTours(); // admin_functions.php'deki fonksiyon kullanılacak
 ?>
 
 <!DOCTYPE html>
@@ -278,31 +280,102 @@ require_once __DIR__ . '/../admin/includes/db.php'; // getTours() fonksiyonu iç
 <script src="../assets/js/ajax.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Filtreleme fonksiyonu
-        const filterTours = () => {
-            const type = document.getElementById('tour-type').value;
-            const city = document.getElementById('city').value;
-            const priceRange = document.getElementById('price-range').value;
-            const date = document.getElementById('date').value;
+        // ... diğer kodlar ...
 
-            // AJAX ile filtreleme yapma
-            fetch('../api/filter_tours.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, city, priceRange, date })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    if(data.success) {
-                        document.getElementById('tour-container').innerHTML = data.html;
-                    }
+        // Tur Ekleme Formu
+        document.getElementById('addTourForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Tüm gerekli alanları kontrol et
+            const requiredFields = ['name', 'short_description', 'price', 'location', 'description', 'type', 'date'];
+            let missingFields = [];
+
+            requiredFields.forEach(field => {
+                const element = document.querySelector(`[name="${field}"]`);
+                if (!element.value.trim()) {
+                    missingFields.push(field);
+                    element.style.borderColor = 'red';
+                } else {
+                    element.style.borderColor = '';
+                }
+            });
+
+            if (missingFields.length > 0) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Eksik Bilgi!',
+                    html: `Lütfen aşağıdaki alanları doldurun:<br><strong>${missingFields.join(', ')}</strong>`,
+                    confirmButtonColor: '#FF7A00'
                 });
-        };
+                return;
+            }
 
-        // Filtre elemanlarına event listener ekleme
-        document.querySelectorAll('#tour-type, #city, #price-range, #date').forEach(el => {
-            el.addEventListener('change', filterTours);
+            // Tarih formatını kontrol et
+            const tourDate = new Date(document.getElementById('tourDate').value);
+            if (isNaN(tourDate.getTime())) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Geçersiz Tarih!',
+                    text: 'Lütfen geçerli bir tarih seçin.',
+                    confirmButtonColor: '#FF7A00'
+                });
+                return;
+            }
+
+            // Form verilerini oluştur
+            const formData = new FormData(this);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+
+            // Butonu yükleme durumuna getir
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Ekleniyor...';
+            submitBtn.disabled = true;
+
+            // Form verilerini konsola yazdır (debug için)
+            for (let [key, value] of formData.entries()) {
+                console.log(key, value);
+            }
+
+            fetch('../../api/add_tour.php', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Başarılı!',
+                            text: 'Tur başarıyla eklendi.',
+                            confirmButtonColor: '#FF7A00'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        throw new Error(data.error || 'Tur eklenirken bir hata oluştu.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Hata!',
+                        html: `İstek gönderilirken bir hata oluştu:<br><strong>${error.message}</strong>`,
+                        confirmButtonColor: '#FF7A00'
+                    });
+                })
+                .finally(() => {
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                });
         });
+
+        // ... diğer kodlar ...
     });
 </script>
 </body>

@@ -410,8 +410,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="checkbox-group">
                 <input type="checkbox" id="accept_terms" name="accept_terms" <?= isset($acceptTerms) && $acceptTerms ? 'checked' : '' ?>>
                 <label for="accept_terms" class="checkbox-label">
-                    <a href="terms.php" target="_blank">Kullanım koşullarını</a> ve
-                    <a href="privacy.php" target="_blank">gizlilik politikasını</a> okudum ve kabul ediyorum
+                    <a href="/pages/auth/terms.php" target="_blank">Kullanım koşullarını</a> ve
+                    <a href="/pages/auth/privacy.php" target="_blank">gizlilik politikasını</a> okudum ve kabul ediyorum
                 </label>
             </div>
             <?php if(!empty($errors['terms'])): ?>
