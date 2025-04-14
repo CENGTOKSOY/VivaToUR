@@ -1,99 +1,112 @@
 <?php
-global $conn;
+// api/add_tour.php
+
 header('Content-Type: application/json');
 
 // Hata raporlamayı aç
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// CORS ayarları
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type");
-
 // Veritabanı bağlantısı ve auth kontrolü
-require_once __DIR__ . '/../../includes/db.php';
-require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../includes/db.php';
+require_once __DIR__ . '/../includes/auth.php';
 
-// Gelen veriyi işle
+// JSON yanıt fonksiyonu
+function jsonResponse($success, $message = '', $data = []) {
+    return json_encode([
+        'success' => $success,
+        'message' => $message,
+        'data' => $data
+    ]);
+}
+
 try {
-    // FormData ile gelen verileri işle
-    $postData = $_POST;
-    $files = $_FILES;
+    // Sadece POST isteklerini kabul et
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Sadece POST istekleri kabul edilir');
+    }
+
+    // Veritabanı bağlantısını kontrol et
+    global $conn;
+    if (!$conn) {
+        throw new Exception("Veritabanı bağlantısı kurulamadı");
+    }
 
     // Gerekli alanları kontrol et
     $requiredFields = ['name', 'short_description', 'description', 'price', 'location', 'type', 'date'];
     foreach ($requiredFields as $field) {
-        if (empty($postData[$field])) {
+        if (empty($_POST[$field])) {
             throw new Exception("$field alanı boş olamaz");
         }
     }
 
-    // Tarih formatını kontrol et
-    $date = DateTime::createFromFormat('Y-m-d', $postData['date']);
-    if (!$date) {
-        throw new Exception("Geçersiz tarih formatı. YYYY-MM-DD olmalıdır.");
+    // Tarih işleme
+    $date = trim($_POST['date']);
+
+    // Tarih formatını kontrol et (YYYY-MM-DD)
+    if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+        throw new Exception("Geçersiz tarih formatı. Lütfen YYYY-AA-GG formatında girin.");
+    }
+
+    // Tarihin geçerli olup olmadığını kontrol et
+    $dateParts = explode('-', $date);
+    if (!checkdate($dateParts[1], $dateParts[2], $dateParts[0])) {
+        throw new Exception("Geçersiz tarih değeri.");
     }
 
     // Resim yükleme işlemi
     $imageName = null;
-    if (!empty($files['image']['name'])) {
+    if (!empty($_FILES['image']['name'])) {
         $uploadDir = __DIR__ . '/../../assets/images/tours/';
         if (!is_dir($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0755, true)) {
+                throw new Exception("Resim klasörü oluşturulamadı");
+            }
         }
 
-        $imageName = uniqid() . '_' . basename($files['image']['name']);
+        // Dosya uzantısını kontrol et
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        $fileExtension = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+
+        if (!in_array($fileExtension, $allowedExtensions)) {
+            throw new Exception("Sadece JPG, JPEG, PNG ve GIF dosyaları yüklenebilir");
+        }
+
+        $imageName = uniqid() . '_' . basename($_FILES['image']['name']);
         $targetPath = $uploadDir . $imageName;
 
-        // Dosya tipi kontrolü
-        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
-        $fileType = mime_content_type($files['image']['tmp_name']);
-
-        if (!in_array($fileType, $allowedTypes)) {
-            throw new Exception("Sadece JPEG, PNG veya GIF formatları kabul edilir");
-        }
-
-        if (!move_uploaded_file($files['image']['tmp_name'], $targetPath)) {
-            throw new Exception("Resim yüklenirken hata oluştu: " . $files['image']['error']);
+        if (!move_uploaded_file($_FILES['image']['tmp_name'], $targetPath)) {
+            throw new Exception("Resim yüklenirken hata oluştu");
         }
     }
 
     // Veritabanına ekle
     $stmt = $conn->prepare("INSERT INTO tours 
-        (name, short_description, description, price, location, type, date, image, featured, active, created_at)
-        VALUES (:name, :short_desc, :desc, :price, :location, :type, :date, :image, :featured, 1, NOW())");
+    (name, short_description, description, price, location, type, date, image, featured, active, created_at)
+    VALUES (:name, :short_desc, :desc, :price, :location, :type, :date, :image, :featured, :active, NOW())");
 
-    $featured = isset($postData['featured']) ? 1 : 0;
-
-    $stmt->execute([
-        ':name' => $postData['name'],
-        ':short_desc' => $postData['short_description'],
-        ':desc' => $postData['description'],
-        ':price' => $postData['price'],
-        ':location' => $postData['location'],
-        ':type' => $postData['type'],
-        ':date' => $postData['date'],
+    $result = $stmt->execute([
+        ':name' => $_POST['name'],
+        ':short_desc' => $_POST['short_description'],
+        ':desc' => $_POST['description'],
+        ':price' => (float)$_POST['price'],
+        ':location' => $_POST['location'],
+        ':type' => $_POST['type'],
+        ':date' => $date,
         ':image' => $imageName,
-        ':featured' => $featured
+        ':featured' => isset($_POST['featured']) ? 1 : 0,
+        ':active' => isset($_POST['active']) ? 1 : 0
     ]);
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Tur başarıyla eklendi',
+    if (!$result) {
+        throw new Exception("Veritabanına ekleme hatası: " . implode(', ', $stmt->errorInfo()));
+    }
+
+    echo jsonResponse(true, 'Tur başarıyla eklendi', [
         'tour_id' => $conn->lastInsertId()
     ]);
 
 } catch (Exception $e) {
     http_response_code(400);
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage(),
-        'post_data' => $_POST,
-        'files_data' => $_FILES,
-        'debug_info' => [
-            'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'not set',
-            'request_method' => $_SERVER['REQUEST_METHOD']
-        ]
-    ]);
+    echo jsonResponse(false, $e->getMessage());
 }

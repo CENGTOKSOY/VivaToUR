@@ -1,12 +1,41 @@
 <?php
 // admin/manage_tours.php
 
+// Hata raporlamayı aç
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Oturumu başlat (auth.php'den önce)
+session_start();
+
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/admin_functions.php';
 
+// Oturum kontrolü
+if (!isset($_SESSION['admin_logged_in'])) {
+    header('Location: login.php');
+    exit;
+}
+
 global $conn;
-$tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+// Turları veritabanından çek
+try {
+    $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+
+    // Hata ayıklama için
+    echo '<pre style="background:#fff;padding:10px;border:1px solid #ccc">';
+    print_r($tours);
+    echo '</pre>';
+} catch (PDOException $e) {
+    die("Sorgu hatası: " . $e->getMessage());
+}
+
+// Hata ayıklama için (üretimde kaldırın)
+echo '<pre style="display:none">';
+print_r($tours);
+echo '</pre>';
 ?>
 
 <!DOCTYPE html>
@@ -52,7 +81,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             display: inline-block;
         }
 
-        /* Kart Tasarımı */
         .card {
             background: white;
             border-radius: 10px;
@@ -79,7 +107,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             padding: 1.5rem;
         }
 
-        /* Form Stilleri */
         .form-group {
             margin-bottom: 1.25rem;
         }
@@ -108,7 +135,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             box-shadow: 0 0 0 3px rgba(255, 122, 0, 0.2);
         }
 
-        /* Butonlar */
         .btn {
             padding: 0.75rem 1.5rem;
             border-radius: 6px;
@@ -156,7 +182,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             font-size: 0.875rem;
         }
 
-        /* Tablo Stilleri */
         .table-responsive {
             overflow-x: auto;
             border-radius: 10px;
@@ -197,7 +222,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             background-color: rgba(255, 122, 0, 0.05);
         }
 
-        /* Tur Görseli */
         .tour-image {
             width: 80px;
             height: 60px;
@@ -206,13 +230,11 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             border: 1px solid var(--border-color);
         }
 
-        /* İşlem Butonları */
         .action-buttons {
             display: flex;
             gap: 0.5rem;
         }
 
-        /* Özel Checkbox */
         .custom-checkbox {
             position: relative;
             padding-left: 1.75rem;
@@ -268,7 +290,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             transform: rotate(45deg);
         }
 
-        /* Responsive Düzen */
         @media (max-width: 768px) {
             .admin-content {
                 padding: 1rem;
@@ -287,7 +308,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             }
         }
 
-        /* Animasyonlar */
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -297,7 +317,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             animation: fadeIn 0.5s ease forwards;
         }
 
-        /* Badge Stilleri */
         .badge {
             display: inline-block;
             padding: 0.35em 0.65em;
@@ -319,7 +338,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             background-color: var(--secondary-color);
         }
 
-        /* Switch Toggle */
         .switch {
             position: relative;
             display: inline-block;
@@ -369,7 +387,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             transform: translateX(26px);
         }
 
-        /* Özel Select */
         .select-wrapper {
             position: relative;
         }
@@ -390,7 +407,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             padding-right: 2.5rem;
         }
 
-        /* Dosya Yükleme Stili */
         .file-upload {
             position: relative;
             overflow: hidden;
@@ -424,7 +440,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
             cursor: pointer;
         }
 
-        /* Özel Scrollbar */
         ::-webkit-scrollbar {
             width: 8px;
             height: 8px;
@@ -455,8 +470,8 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
         </button>
     </div>
 
-    <!-- Tur Ekleme Formu - Kart İçinde -->
-    <div class="card mb-4 fade-in" id="addTourCard">
+    <!-- Tur Ekleme Formu -->
+    <div class="card mb-4 fade-in" id="addTourCard" style="display:none;">
         <div class="card-header">
             <i class="fas fa-map-marked-alt me-2"></i>Yeni Tur Oluştur
         </div>
@@ -579,56 +594,62 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
                     </tr>
                     </thead>
                     <tbody>
-                    <?php foreach ($tours as $tour): ?>
-                        <tr data-id="<?= $tour['id'] ?>" class="fade-in">
-                            <td><?= $tour['id'] ?></td>
-                            <td>
-                                <?php if (!empty($tour['image'])): ?>
-                                    <img src="../../assets/images/tours/<?= htmlspecialchars($tour['image']) ?>"
-                                         alt="<?= htmlspecialchars($tour['name']) ?>"
-                                         class="tour-image">
-                                <?php else: ?>
-                                    <div class="tour-image bg-light d-flex align-items-center justify-content-center">
-                                        <i class="fas fa-image text-muted"></i>
-                                    </div>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <strong><?= htmlspecialchars($tour['name']) ?></strong>
-                                <?php if ($tour['featured']): ?>
-                                    <span class="badge badge-primary ms-2">Öne Çıkan</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-                                <?php
-                                $typeLabels = [
-                                    'cultural' => 'Kültürel',
-                                    'festival' => 'Festival',
-                                    'adaptation' => 'Adaptasyon',
-                                    'historical' => 'Tarihi'
-                                ];
-                                echo $typeLabels[$tour['type']] ?? $tour['type'];
-                                ?>
-                            </td>
-                            <td><?= number_format($tour['price'], 2) ?> TL</td>
-                            <td><?= date('d.m.Y', strtotime($tour['date'])) ?></td>
-                            <td>
+                    <?php if (empty($tours)): ?>
+                        <tr>
+                            <td colspan="8" class="text-center py-4">Henüz tur eklenmemiş</td>
+                        </tr>
+                    <?php else: ?>
+                        <?php foreach ($tours as $tour): ?>
+                            <tr data-id="<?= htmlspecialchars($tour['id']) ?>" class="fade-in">
+                                <td><?= htmlspecialchars($tour['id']) ?></td>
+                                <td>
+                                    <?php if (!empty($tour['image'])): ?>
+                                        <img src="../../assets/images/tours/<?= htmlspecialchars($tour['image']) ?>"
+                                             alt="<?= htmlspecialchars($tour['name']) ?>"
+                                             class="tour-image">
+                                    <?php else: ?>
+                                        <div class="tour-image bg-light d-flex align-items-center justify-content-center">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <strong><?= htmlspecialchars($tour['name']) ?></strong>
+                                    <?php if (!empty($tour['featured'])): ?>
+                                        <span class="badge badge-primary ms-2">Öne Çıkan</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php
+                                    $typeLabels = [
+                                        'cultural' => 'Kültürel',
+                                        'festival' => 'Festival',
+                                        'adaptation' => 'Adaptasyon',
+                                        'historical' => 'Tarihi'
+                                    ];
+                                    echo $typeLabels[$tour['type']] ?? htmlspecialchars($tour['type']);
+                                    ?>
+                                </td>
+                                <td><?= number_format($tour['price'], 2) ?> TL</td>
+                                <td><?= date('d.m.Y', strtotime($tour['date'])) ?></td>
+                                <td>
                                     <span class="badge <?= $tour['active'] ? 'badge-primary' : 'badge-secondary' ?>">
                                         <?= $tour['active'] ? 'Aktif' : 'Pasif' ?>
                                     </span>
-                            </td>
-                            <td>
-                                <div class="action-buttons">
-                                    <button class="btn btn-secondary btn-sm edit-btn" title="Düzenle">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-danger btn-sm delete-btn" title="Sil">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <button class="btn btn-secondary btn-sm edit-btn" title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-danger btn-sm delete-btn" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -648,13 +669,10 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
         addTourCard.style.display = 'none';
 
         toggleFormBtn.addEventListener('click', function() {
-            if (addTourCard.style.display === 'none') {
-                addTourCard.style.display = 'block';
-                toggleFormBtn.innerHTML = '<i class="fas fa-minus me-2"></i>Formu Kapat';
-            } else {
-                addTourCard.style.display = 'none';
-                toggleFormBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Yeni Tur Ekle';
-            }
+            addTourCard.style.display = addTourCard.style.display === 'none' ? 'block' : 'none';
+            toggleFormBtn.innerHTML = addTourCard.style.display === 'none'
+                ? '<i class="fas fa-plus me-2"></i>Yeni Tur Ekle'
+                : '<i class="fas fa-minus me-2"></i>Formu Kapat';
         });
 
         // Dosya seçildiğinde ismi göster
@@ -666,48 +684,45 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
         // Tur Ekleme Formu
         document.getElementById('addTourForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
-            const formElement = document.getElementById('addTourForm');
+            const formElement = this;
             const formData = new FormData(formElement);
-            const submitBtn = this.querySelector('button[type="submit"]');
+            const submitBtn = formElement.querySelector('button[type="submit"]');
             const originalBtnText = submitBtn.innerHTML;
 
-            // Butonu yükleme durumuna getir
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Ekleniyor...';
             submitBtn.disabled = true;
 
             try {
                 const response = await fetch('../../api/add_tour.php', {
                     method: 'POST',
-                    body: formData // Content-Type otomatik olarak multipart/form-data olarak ayarlanır
+                    body: formData
                 });
 
-                // Yanıtın JSON olup olmadığını kontrol et
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    const text = await response.text();
-                    throw new Error(`Beklenmeyen yanıt formatı: ${text}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
 
                 if (!data.success) {
-                    throw new Error(data.error || 'Bilinmeyen sunucu hatası');
+                    throw new Error(data.message || 'Tur eklenirken bir hata oluştu');
                 }
 
                 Swal.fire({
                     icon: 'success',
                     title: 'Başarılı!',
-                    text: 'Tur başarıyla eklendi',
+                    text: data.message || 'Tur başarıyla eklendi',
                     confirmButtonColor: '#FF7A00'
-                }).then(() => location.reload());
+                }).then(() => {
+                    window.location.reload(); // Sayfayı yenile
+                });
 
             } catch (error) {
-                console.error('Hata detayı:', error);
+                console.error('Hata:', error);
                 Swal.fire({
                     icon: 'error',
-                    title: 'İşlem Başarısız',
-                    html: `Bir hata oluştu:<br><strong>${error.message}</strong>`,
+                    title: 'Hata!',
+                    text: error.message,
                     confirmButtonColor: '#FF7A00'
                 });
             } finally {
@@ -746,17 +761,18 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
                                         title: 'Silindi!',
                                         text: 'Tur başarıyla silindi.',
                                         confirmButtonColor: '#FF7A00'
-                                    }).then(() => {
-                                        location.reload();
-                                    });
+                                    }).then(() => window.location.reload());
                                 } else {
-                                    Swal.fire({
-                                        icon: 'error',
-                                        title: 'Hata!',
-                                        text: data.error || 'Tur silinirken bir hata oluştu.',
-                                        confirmButtonColor: '#FF7A00'
-                                    });
+                                    throw new Error(data.error || 'Silme işlemi başarısız');
                                 }
+                            })
+                            .catch(error => {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Hata!',
+                                    text: error.message,
+                                    confirmButtonColor: '#FF7A00'
+                                });
                             });
                     }
                 });
@@ -773,7 +789,6 @@ $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(
                     icon: 'info',
                     confirmButtonColor: '#FF7A00'
                 });
-                // Burada bir modal açıp düzenleme formu gösterilebilir
             });
         });
     });
