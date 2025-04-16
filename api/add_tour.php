@@ -2,6 +2,14 @@
 // api/add_tour.php
 
 header('Content-Type: application/json');
+session_start(); // <-- Oturum başlatıldı
+
+// Giriş kontrolü (nokta atışı çözüm)
+if (!isset($_SESSION["admin_logged_in"]) || $_SESSION["admin_logged_in"] !== true) {
+    http_response_code(403);
+    echo json_encode(["success" => false, "message" => "Yetkisiz erişim. Lütfen giriş yapın."]);
+    exit;
+}
 
 // Hata raporlamayı aç
 error_reporting(E_ALL);
@@ -57,7 +65,7 @@ try {
     // Resim yükleme işlemi
     $imageName = null;
     if (!empty($_FILES['image']['name'])) {
-        $uploadDir = __DIR__ . '../assets/images/tours/';
+        $uploadDir = __DIR__ . '/../assets/images/tours/'; // <-- dikkat! düzeltildi
         if (!is_dir($uploadDir)) {
             if (!mkdir($uploadDir, 0755, true)) {
                 throw new Exception("Resim klasörü oluşturulamadı");

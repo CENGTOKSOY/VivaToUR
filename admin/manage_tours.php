@@ -1,6 +1,6 @@
 <?php
 // admin/manage_tours.php
-
+// pages/user/index.php
 global $conn;
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

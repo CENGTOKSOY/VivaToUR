@@ -333,7 +333,7 @@ require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantı
     <section class="cta-section">
         <h2>Kültür Yolculuğuna Hazır mısınız?</h2>
         <p>Şimdi keşfedin, unutulmaz anılar biriktirin!</p>
-        <a href="/pages/tours.php" class="cta-button">Turları Görüntüle</a>
+        <a href="tours.php" class="cta-button">Turları Görüntüle</a>
     </section>
 </div>
 
