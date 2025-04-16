@@ -1,43 +1,35 @@
 <?php
 // admin/manage_tours.php
 
-// Hata raporlamayı aç
+global $conn;
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Oturumu başlat (auth.php'den önce)
 session_start();
 
-require_once __DIR__ . '/includes/db.php';
+require_once __DIR__ . '/../includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
 require_once __DIR__ . '/includes/admin_functions.php';
 
-// Oturum kontrolü
 if (!isset($_SESSION['admin_logged_in'])) {
     header('Location: login.php');
     exit;
 }
 
-global $conn;
-
-// Turları veritabanından çek
 try {
-    $tours = $conn->query("SELECT * FROM tours ORDER BY created_at DESC")->fetchAll(PDO::FETCH_ASSOC);
+    $query = "SELECT * FROM tours ORDER BY created_at DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    $tours = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Hata ayıklama için
-    echo '<pre style="background:#fff;padding:10px;border:1px solid #ccc">';
-    print_r($tours);
-    echo '</pre>';
 } catch (PDOException $e) {
-    die("Sorgu hatası: " . $e->getMessage());
+    die('<div style="background:#ffebee;padding:15px;border-left:5px solid #f44336;margin:20px;">
+        <h3 style="color:#d32f2f;margin-top:0;">Sorgu Hatası</h3>
+        <p><strong>Hata Mesajı:</strong> ' . $e->getMessage() . '</p>
+        <p><strong>SQL Sorgusu:</strong> ' . ($e->queryString ?? 'Bilinmiyor') . '</p>
+    </div>');
 }
-
-// Hata ayıklama için (üretimde kaldırın)
-echo '<pre style="display:none">';
-print_r($tours);
-echo '</pre>';
 ?>
-
 <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -63,6 +55,8 @@ echo '</pre>';
             background-color: #f5f5f5;
             color: var(--dark-text);
             line-height: 1.6;
+            margin: 0;
+            padding: 0;
         }
 
         .admin-content {
@@ -101,6 +95,12 @@ echo '</pre>';
             padding: 1rem 1.5rem;
             font-weight: 600;
             font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-header i {
+            margin-right: 0.5rem;
         }
 
         .card-body {
@@ -290,33 +290,6 @@ echo '</pre>';
             transform: rotate(45deg);
         }
 
-        @media (max-width: 768px) {
-            .admin-content {
-                padding: 1rem;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-            }
-
-            table {
-                font-size: 0.875rem;
-            }
-
-            th, td {
-                padding: 0.75rem;
-            }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease forwards;
-        }
-
         .badge {
             display: inline-block;
             padding: 0.35em 0.65em;
@@ -438,6 +411,82 @@ echo '</pre>';
             width: 100%;
             height: 100%;
             cursor: pointer;
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .me-2 {
+            margin-right: 0.5rem;
+        }
+
+        .ms-2 {
+            margin-left: 0.5rem;
+        }
+
+        .mt-3 {
+            margin-top: 1rem;
+        }
+
+        .mb-4 {
+            margin-bottom: 1.5rem;
+        }
+
+        .py-4 {
+            padding-top: 1.5rem;
+            padding-bottom: 1.5rem;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: #6c757d;
+        }
+
+        .m-0 {
+            margin: 0;
+        }
+
+        .p-0 {
+            padding: 0;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .admin-content {
+                padding: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 0.875rem;
+            }
+
+            th, td {
+                padding: 0.75rem;
+            }
         }
 
         ::-webkit-scrollbar {
@@ -604,9 +653,21 @@ echo '</pre>';
                                 <td><?= htmlspecialchars($tour['id']) ?></td>
                                 <td>
                                     <?php if (!empty($tour['image'])): ?>
-                                        <img src="../../assets/images/tours/<?= htmlspecialchars($tour['image']) ?>"
-                                             alt="<?= htmlspecialchars($tour['name']) ?>"
-                                             class="tour-image">
+                                        <?php
+                                        $imageParts = explode('_', $tour['image']);
+                                        $imageFile = end($imageParts);
+                                        $imagePath = '../assets/images/tours/' . $imageFile;
+                                        ?>
+                                        <?php if (file_exists($imagePath)): ?>
+                                            <img src="<?= htmlspecialchars($imagePath) ?>"
+                                                 alt="<?= htmlspecialchars($tour['name']) ?>"
+                                                 class="tour-image">
+                                        <?php else: ?>
+                                            <div class="tour-image bg-light d-flex align-items-center justify-content-center">
+                                                <i class="fas fa-image text-muted"></i>
+                                                <small>Dosya bulunamadı</small>
+                                            </div>
+                                        <?php endif; ?>
                                     <?php else: ?>
                                         <div class="tour-image bg-light d-flex align-items-center justify-content-center">
                                             <i class="fas fa-image text-muted"></i>
@@ -633,9 +694,9 @@ echo '</pre>';
                                 <td><?= number_format($tour['price'], 2) ?> TL</td>
                                 <td><?= date('d.m.Y', strtotime($tour['date'])) ?></td>
                                 <td>
-                                    <span class="badge <?= $tour['active'] ? 'badge-primary' : 'badge-secondary' ?>">
-                                        <?= $tour['active'] ? 'Aktif' : 'Pasif' ?>
-                                    </span>
+            <span class="badge <?= $tour['active'] ? 'badge-primary' : 'badge-secondary' ?>">
+                <?= $tour['active'] ? 'Aktif' : 'Pasif' ?>
+            </span>
                                 </td>
                                 <td>
                                     <div class="action-buttons">
@@ -658,6 +719,7 @@ echo '</pre>';
 </div>
 
 <script src="../../assets/js/admin.js"></script>
+<script src="/assets/js/ajax.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -714,7 +776,7 @@ echo '</pre>';
                     text: data.message || 'Tur başarıyla eklendi',
                     confirmButtonColor: '#FF7A00'
                 }).then(() => {
-                    window.location.reload(); // Sayfayı yenile
+                    window.location.reload();
                 });
 
             } catch (error) {

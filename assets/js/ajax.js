@@ -4,6 +4,7 @@ function getTours() {
         .then(response => response.json())
         .then(data => {
             const tourList = document.querySelector('.tour-list');
+            if (!tourList) return; // Eğer sayfada .tour-list yoksa devam etme
             tourList.innerHTML = '';
             data.forEach(tour => {
                 const tourCard = document.createElement('div');
@@ -15,6 +16,9 @@ function getTours() {
                 `;
                 tourList.appendChild(tourCard);
             });
+        })
+        .catch(error => {
+            console.error('Turlar yüklenirken hata:', error);
         });
 }
 
@@ -26,12 +30,20 @@ function addTour(tourData) {
         },
         body: JSON.stringify(tourData)
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            getTours();
-        }
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                getTours();
+            }
+        })
+        .catch(error => {
+            console.error('Tur eklenirken hata:', error);
+        });
 }
 
 // Diğer AJAX fonksiyonları (updateTour, deleteTour) buraya eklenebilir.
+
+// Sayfa yüklendiğinde turları getir
+document.addEventListener('DOMContentLoaded', function() {
+    getTours();
+});

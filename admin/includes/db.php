@@ -2,14 +2,18 @@
 // includes/db.php
 
 $host = 'localhost';
-$port = '5432';
-$dbname = 'viva_tour'; // Veritabanı adın
-$username = 'postgres'; // Kullanıcı adın
-$password = 'postgresql123'; // Şifren
+$dbname = 'vivatour_db';
+$user = 'postgres';
+$password = 'postgresql123';
 
 try {
-    $conn = new PDO("pgsql:host=$host;port=$port;dbname=$dbname", $username, $password);
+    // Düzeltilmiş bağlantı dizesi
+    $conn = new PDO("pgsql:host=$host;dbname=$dbname", $user, $password);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    // Schema ayarını ayrı bir sorgu ile yapalım
+    $conn->exec("SET search_path TO public");
+
 } catch(PDOException $e) {
-    die("Bağlantı hatası: " . $e->getMessage());
+    die("<div style='color:red;padding:10px;border:1px solid red;'>Veritabanı bağlantı hatası: " . $e->getMessage() . "</div>");
 }

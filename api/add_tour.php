@@ -57,7 +57,7 @@ try {
     // Resim yükleme işlemi
     $imageName = null;
     if (!empty($_FILES['image']['name'])) {
-        $uploadDir = __DIR__ . '/../../assets/images/tours/';
+        $uploadDir = __DIR__ . '../assets/images/tours/';
         if (!is_dir($uploadDir)) {
             if (!mkdir($uploadDir, 0755, true)) {
                 throw new Exception("Resim klasörü oluşturulamadı");
@@ -82,8 +82,8 @@ try {
 
     // Veritabanına ekle
     $stmt = $conn->prepare("INSERT INTO tours 
-    (name, short_description, description, price, location, type, date, image, featured, active, created_at)
-    VALUES (:name, :short_desc, :desc, :price, :location, :type, :date, :image, :featured, :active, NOW())");
+        (name, short_description, description, price, location, type, date, image, featured, active, created_at)
+        VALUES (:name, :short_desc, :desc, :price, :location, :type, :date, :image, :featured, :active, NOW())");
 
     $result = $stmt->execute([
         ':name' => $_POST['name'],
