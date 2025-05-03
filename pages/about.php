@@ -280,8 +280,8 @@ require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantı
                 <div class="member-img" style="background-image: url('/assets/images/team1.jpg');"></div>
                 <div class="member-info">
                     <h3>Ali Gaffar Toksoy</h3>
-                    <p class="member-role">Kurucu & CEO</p>
-                    <p>10 yıllık turizm deneyimiyle ekibimize liderlik ediyor.</p>
+                    <p class="member-role">Kurucu & CEO </p>
+                    <p>Firmanın Kurucusu ve Yönlendiricisi.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-linkedin"></i></a>
                         <a href="#"><i class="fab fa-twitter"></i></a>
@@ -294,7 +294,7 @@ require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantı
                 <div class="member-info">
                     <h3>Hüseyin Demirel</h3>
                     <p class="member-role">Kurumsal İlişkiler Müdürü</p>
-                    <p>Kültür turları uzmanı ve profesyonel rehber.</p>
+                    <p>Ekibimizin Kurumsal Kimlik ve Kurumsal İlişkiler Yüzü.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-whatsapp"></i></a>
@@ -306,8 +306,8 @@ require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantı
                 <div class="member-img" style="background-image: url('/assets/images/team3.jpg');"></div>
                 <div class="member-info">
                     <h3>Hasan Hüseyin Kurt</h3>
-                    <p class="member-role">Marketing Manager</p>
-                    <p>Kültür turlarını tüm dünyaya yayma ve duyurma liderimiz.</p>
+                    <p class="member-role">Marketing Müdürü</p>
+                    <p>Kültür Turlarını Tüm Dünyaya Yayma ve Duyurma Liderimiz.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-instagram"></i></a>
                         <a href="#"><i class="fab fa-whatsapp"></i></a>
@@ -319,8 +319,8 @@ require_once __DIR__ . '/../admin/includes/config.php'; // PostgreSQL bağlantı
                 <div class="member-img" style="background-image: url('/assets/images/team4.jpg');"></div>
                 <div class="member-info">
                     <h3>Şükran Kurt</h3>
-                    <p class="member-role">Müşteri İlişkileri</p>
-                    <p>5 dil bilen ekibimizin uluslararası yüzü.</p>
+                    <p class="member-role">Uluslar Arası iletişim ve Planlama Müdürü </p>
+                    <p>Ekibimizin Uluslararası Yüzü ve Dünyaya Açılmadaki Anahtarı.</p>
                     <div class="social-links">
                         <a href="#"><i class="fab fa-facebook"></i></a>
                         <a href="#"><i class="fab fa-skype"></i></a>

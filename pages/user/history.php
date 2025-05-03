@@ -1,87 +1,51 @@
 <?php
+// pages/user/history.php
+
 global $conn;
 require_once __DIR__ . '/../../includes/config.php';
-require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/db.php';
 
-$userId = $_SESSION['user_id'];
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ' . BASE_URL . '/pages/auth/login.php');
+    exit;
+}
 
-// Geçmiş turları getir (tarihi geçmiş olanlar)
-$stmt = $conn->prepare("SELECT b.*, t.name as tour_name, t.image, t.location 
-                       FROM bookings b
-                       JOIN tours t ON b.tour_id = t.id
-                       WHERE b.user_id = ? AND t.date < CURDATE()
-                       ORDER BY t.date DESC");
-$stmt->execute([$userId]);
+// PostgreSQL uyumlu tarih sorgusu
+$stmt = $conn->prepare("
+    SELECT t.* 
+    FROM tours t
+    JOIN bookings b ON t.id = b.tour_id
+    WHERE b.user_id = :user_id AND t.date < CURRENT_DATE
+    ORDER BY t.date DESC
+");
+$stmt->execute([':user_id' => $_SESSION['user_id']]);
 $pastTours = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Geçmiş Turlarım - VivaToUR</title>
-    <link rel="stylesheet" href="/assets/css/user.css">
-</head>
-<body>
+$pageTitle = "Geçmiş Turlar";
+?>
 <?php include __DIR__ . '/../../includes/header.php'; ?>
 
-<div class="user-container">
-    <?php include __DIR__ . '/user-sidebar.php'; ?>
+    <div class="profile-page-container">
+        <!-- Sidebar kodu buraya -->
 
-    <div class="user-content">
-        <h1><i class="fas fa-history"></i> Geçmiş Turlarım</h1>
+        <div class="profile-content">
+            <h1><i class="fas fa-history"></i> Geçmiş Turlar</h1>
 
-        <?php if(empty($pastTours)): ?>
-            <div class="empty-state">
-                <i class="far fa-clock"></i>
-                <h3>Henüz geçmiş turunuz yok</h3>
-                <p>Katıldığınız turlar burada görünecektir</p>
-                <a href="/pages/tours.php" class="btn btn-orange">Yeni Tur Keşfet</a>
-            </div>
-        <?php else: ?>
-            <div class="history-list">
-                <?php foreach ($pastTours as $tour): ?>
-                    <div class="history-item">
-                        <div class="history-image">
-                            <img src="<?= !empty($tour['image']) ? $tour['image'] : '/assets/images/tour-default.jpg' ?>">
+            <?php if(empty($pastTours)): ?>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Henüz katıldığınız bir tur bulunmamaktadır.
+                </div>
+            <?php else: ?>
+                <div class="tour-list">
+                    <?php foreach($pastTours as $tour): ?>
+                        <div class="tour-card">
+                            <!-- Tur bilgilerini göster -->
                         </div>
-                        <div class="history-details">
-                            <h3><?= htmlspecialchars($tour['tour_name']) ?></h3>
-                            <p><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($tour['location']) ?></p>
-                            <p><i class="fas fa-users"></i> <?= $tour['guests'] ?> kişi</p>
-                            <p><i class="fas fa-calendar-day"></i> <?= date('d.m.Y', strtotime($tour['date'])) ?></p>
-                        </div>
-                        <div class="history-actions">
-                            <button class="btn btn-outline write-review" data-tour-id="<?= $tour['tour_id'] ?>">
-                                <i class="fas fa-star"></i> Yorum Yap
-                            </button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </div>
     </div>
-</div>
 
-<!-- Yorum Modalı -->
-<div class="modal" id="reviewModal">
-    <div class="modal-content">
-        <span class="close-modal">&times;</span>
-        <h2>Tur Deneyiminizi Değerlendirin</h2>
-        <form id="reviewForm">
-            <input type="hidden" name="tour_id" id="reviewTourId">
-            <div class="rating-stars">
-                <!-- 5 yıldız rating sistemi -->
-            </div>
-            <div class="form-group">
-                <label>Yorumunuz</label>
-                <textarea name="review" rows="5" required></textarea>
-            </div>
-            <button type="submit" class="btn btn-orange">Gönder</button>
-        </form>
-    </div>
-</div>
-
-<script src="/assets/js/history.js"></script>
-</body>
-</html>
+<?php include __DIR__ . '/../../includes/footer.php'; ?>

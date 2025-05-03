@@ -9,9 +9,9 @@ $isLoggedIn = isset($_SESSION['user_id']);
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 $userId = $isLoggedIn ? $_SESSION['user_id'] : null;
 
-// Öne çıkan turları çek
+// Öne çıkan turları çek (LIMIT kaldırıldı)
 try {
-    $stmt = $conn->query("SELECT * FROM tours WHERE featured = true AND active = true LIMIT 3");
+    $stmt = $conn->query("SELECT * FROM tours WHERE featured = true AND active = true");
     $featuredTours = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
     error_log("Öne çıkan turlar çekilirken hata: " . $e->getMessage());
@@ -48,6 +48,8 @@ if ($isLoggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VivaToUR - Kültür Turları</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
     <style>
         :root {
             --viva-orange: #FF7A00;
@@ -275,6 +277,7 @@ if ($isLoggedIn) {
             overflow: hidden;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
             transition: transform 0.3s ease;
+            margin: 0 10px;
         }
 
         .tour-card:hover {
@@ -378,6 +381,49 @@ if ($isLoggedIn) {
             transform: translateY(-3px);
         }
 
+        /* Carousel Stilleri */
+        .featured-tours-carousel {
+            margin: 0 -15px;
+        }
+
+        .featured-tours-carousel .slick-slide {
+            padding: 0 15px;
+        }
+
+        .featured-tours-carousel .slick-prev:before,
+        .featured-tours-carousel .slick-next:before {
+            color: var(--viva-orange);
+        }
+
+        .featured-tours-carousel .slick-dots li button:before {
+            font-size: 10px;
+            color: var(--viva-orange);
+        }
+
+        .featured-tours-carousel .slick-dots li.slick-active button:before {
+            color: var(--viva-orange);
+        }
+
+        /* Carousel container */
+        .carousel-container {
+            position: relative;
+            padding: 0 30px;
+        }
+
+        .slick-prev, .slick-next {
+            width: 40px;
+            height: 40px;
+            z-index: 1;
+        }
+
+        .slick-prev {
+            left: 0;
+        }
+
+        .slick-next {
+            right: 0;
+        }
+
         @media (max-width: 768px) {
             .hero {
                 height: 400px;
@@ -404,6 +450,10 @@ if ($isLoggedIn) {
             .section-title {
                 font-size: 1.5rem;
             }
+
+            .carousel-container {
+                padding: 0 15px;
+            }
         }
     </style>
 </head>
@@ -415,8 +465,8 @@ if ($isLoggedIn) {
             <?php if($isLoggedIn): ?>
                 <span>Hoş geldiniz, <?= htmlspecialchars($userName) ?></span>
                 <div class="user-avatar"><?= strtoupper(substr($userName, 0, 1)) ?></div>
-                <a href="profile.php" style="color: white;"><i class="fas fa-user"></i></a>
-                <a href="logout.php" style="color: white;"><i class="fas fa-sign-out-alt"></i></a>
+                <a href="user/profile.php" style="color: white;"><i class="fas fa-user"></i></a>
+                <a href="auth/logout.php" style="color: white;"><i class="fas fa-sign-out-alt"></i></a>
             <?php else: ?>
                 <a href="auth/login.php" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Giriş Yap</a>
                 <a href="auth/register.php" class="btn btn-primary" style="padding: 0.5rem 1rem;">Kayıt Ol</a>
@@ -431,15 +481,15 @@ if ($isLoggedIn) {
     <a href="contact.php"><i class="fas fa-envelope"></i> İletişim</a>
     <a href="about.php"><i class="fas fa-info-circle"></i> Hakkımızda</a>
     <?php if($isLoggedIn): ?>
-        <a href="my-bookings.php"><i class="fas fa-suitcase"></i> Rezervasyonlarım</a>
+        <a href="user/bookings.php"><i class="fas fa-suitcase"></i> Rezervasyonlarım</a>
     <?php endif; ?>
 </nav>
 
 <div class="container">
     <section class="hero">
         <div class="hero-content">
-            <h1>Unutulmaz Kültür Deneyimleri</h1>
-            <p>Türkiye'nin en özel kültür turlarını keşfedin</p>
+            <h1>Unutulmaz Tur Deneyimleri</h1>
+            <p>Türkiye'nin en özel turlarını keşfedin</p>
             <a href="tours.php" class="btn btn-primary">Turları Keşfet</a>
             <?php if(!$isLoggedIn): ?>
                 <a href="auth/register.php" class="btn btn-secondary">Ücretsiz Kayıt Ol</a>
@@ -472,35 +522,38 @@ if ($isLoggedIn) {
 
     <section class="featured-tours">
         <h2 class="section-title"><i class="fas fa-star"></i> Öne Çıkan Turlar</h2>
-        <div class="tour-grid">
-            <?php if (empty($featuredTours)): ?>
-                <p class="empty-message">Şu anda öne çıkan tur bulunmamaktadır.</p>
-            <?php else: ?>
-                <?php foreach ($featuredTours as $tour):
-                    $imageParts = explode('_', $tour['image']);
-                    $imageFile = end($imageParts);
-                    $imagePath = !empty($tour['image']) ? '../assets/images/tours/' . $imageFile : '../assets/images/tour-default.jpg';
-                    ?>
-                    <div class="tour-card">
-                        <div class="tour-image" style="background-image: url('<?= $imagePath ?>');">
-                            <span class="tour-price"><?= number_format($tour['price'], 2) ?> TL</span>
-                        </div>
-                        <div class="tour-content">
-                            <h3 class="tour-title"><?= htmlspecialchars($tour['name']) ?></h3>
-                            <p class="tour-description"><?= htmlspecialchars($tour['short_description']) ?></p>
-                            <div class="tour-actions">
-                                <a href="detail.php?id=<?= $tour['id'] ?>" class="btn btn-primary btn-sm">Detaylar</a>
-                                <?php if($isLoggedIn): ?>
-                                    <button class="btn btn-secondary btn-sm favorite-btn" data-tour-id="<?= $tour['id'] ?>">
-                                        <i class="far fa-heart"></i> Favori
-                                    </button>
-                                <?php endif; ?>
+
+        <?php if (empty($featuredTours)): ?>
+            <p class="empty-message">Şu anda öne çıkan tur bulunmamaktadır.</p>
+        <?php else: ?>
+            <div class="carousel-container">
+                <div class="featured-tours-carousel">
+                    <?php foreach ($featuredTours as $tour):
+                        $imageParts = explode('_', $tour['image']);
+                        $imageFile = end($imageParts);
+                        $imagePath = !empty($tour['image']) ? '../assets/images/tours/' . $imageFile : '../assets/images/tour-default.jpg';
+                        ?>
+                        <div class="tour-card">
+                            <div class="tour-image" style="background-image: url('<?= $imagePath ?>');">
+                                <span class="tour-price"><?= number_format($tour['price'], 2) ?> TL</span>
+                            </div>
+                            <div class="tour-content">
+                                <h3 class="tour-title"><?= htmlspecialchars($tour['name']) ?></h3>
+                                <p class="tour-description"><?= htmlspecialchars($tour['short_description']) ?></p>
+                                <div class="tour-actions">
+                                    <a href="detail.php?id=<?= $tour['id'] ?>" class="btn btn-primary btn-sm">Detaylar</a>
+                                    <?php if($isLoggedIn): ?>
+                                        <button class="btn btn-secondary btn-sm favorite-btn" data-tour-id="<?= $tour['id'] ?>">
+                                            <i class="far fa-heart"></i> Favori
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        <?php endif; ?>
 
         <?php if(!empty($featuredTours)): ?>
             <div style="text-align: center; margin-top: 2rem;">
@@ -519,6 +572,8 @@ if ($isLoggedIn) {
     </div>
 </footer>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 <script src="../assets/js/script.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -550,6 +605,35 @@ if ($isLoggedIn) {
                     });
             });
         });
+
+        // Carousel başlatma
+        if (document.querySelector('.featured-tours-carousel')) {
+            $('.featured-tours-carousel').slick({
+                dots: true,
+                infinite: true,
+                speed: 300,
+                slidesToShow: 3,
+                slidesToScroll: 1,
+                autoplay: true,
+                autoplaySpeed: 5000,
+                responsive: [
+                    {
+                        breakpoint: 1024,
+                        settings: {
+                            slidesToShow: 2,
+                            slidesToScroll: 1
+                        }
+                    },
+                    {
+                        breakpoint: 768,
+                        settings: {
+                            slidesToShow: 1,
+                            slidesToScroll: 1
+                        }
+                    }
+                ]
+            });
+        }
     });
 </script>
 </body>

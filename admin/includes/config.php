@@ -2,9 +2,9 @@
 // admin/includes/config.php
 
 $host = 'localhost';
-$dbname = 'viva_tour';
+$dbname = 'vivatour_db';
 $user = 'postgres';
-$password = 'your_password';
+$password = 'postgresql123';
 
 try {
     $conn = new PDO("pgsql:host=$host;dbname=$dbname", $user, $password);

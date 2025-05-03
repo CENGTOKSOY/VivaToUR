@@ -2,6 +2,7 @@
 global $conn;
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/db.php';
 
 $userId = $_SESSION['user_id'];
 $stmt = $conn->prepare("SELECT b.*, t.name as tour_name, t.image 

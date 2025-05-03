@@ -3,6 +3,11 @@ global $conn;
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/db.php';
 
+// Oturumu başlat
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 $error = null;
 $email = '';
 
@@ -10,22 +15,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
-    $stmt->execute([$email]);
-    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if ($user && password_verify($password, $user['password'])) {
-        session_start();
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['name'];
-        $_SESSION['last_login'] = time();
+        if ($user && password_verify($password, $user['password'])) {
+            // Kullanıcı oturum bilgilerini ayarla
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['last_login'] = time();
+            $_SESSION['logged_in'] = true;
 
-        // Yönlendirme öncesi başarılı giriş mesajı
-        $_SESSION['login_success'] = true;
-        header('Location: /pages/user/profile.php');
-        exit;
-    } else {
-        $error = "Girdiğiniz bilgilerle eşleşen bir hesap bulunamadı";
+            // Son giriş tarihini güncelle
+            $updateStmt = $conn->prepare("UPDATE users SET last_login = NOW() WHERE id = ?");
+            $updateStmt->execute([$user['id']]);
+
+            // Başarılı giriş mesajı
+            $_SESSION['login_success'] = true;
+
+            // Yönlendirme
+            header('Location: /pages/user/profile.php');
+            exit;
+        } else {
+            $error = "Girdiğiniz bilgilerle eşleşen bir hesap bulunamadı";
+        }
+    } catch (PDOException $e) {
+        error_log("Giriş hatası: " . $e->getMessage());
+        $error = "Sistem hatası oluştu. Lütfen daha sonra tekrar deneyin.";
     }
 }
 ?>
@@ -223,59 +241,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             position: relative;
         }
 
-        /* Social Login */
-        .social-login {
-            margin-top: 24px;
-        }
-
-        .social-divider {
-            display: flex;
-            align-items: center;
-            margin: 20px 0;
-            color: #A0AEC0;
-            font-size: 14px;
-        }
-
-        .social-divider::before,
-        .social-divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid #E2E8F0;
-        }
-
-        .social-divider::before {
-            margin-right: 16px;
-        }
-
-        .social-divider::after {
-            margin-left: 16px;
-        }
-
-        .social-buttons {
-            display: flex;
-            gap: 12px;
-            margin-top: 16px;
-        }
-
-        .social-btn {
-            flex: 1;
-            padding: 12px;
+        .alert {
+            padding: 14px;
             border-radius: 8px;
-            border: 1px solid #E2E8F0;
-            background: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
+            margin-bottom: 24px;
+            font-size: 14px;
+            border-left: 4px solid;
         }
 
-        .social-btn:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
+        .alert-danger {
+            color: var(--danger);
+            background: #FED7D7;
+            border-color: var(--danger);
         }
 
-        .social-btn img {
-            height: 20px;
+        .alert-success {
+            color: var(--success);
+            background: #C6F6D5;
+            border-color: var(--success);
         }
 
         /* Responsive */
@@ -304,13 +287,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <div class="auth-content">
         <?php if(isset($error)): ?>
-            <div style="color: var(--danger); background: #FED7D7; padding: 14px; border-radius: 8px; margin-bottom: 24px; font-size: 14px; border-left: 4px solid var(--danger);">
+            <div class="alert alert-danger">
                 <i class="fas fa-exclamation-circle"></i> <?= htmlspecialchars($error) ?>
             </div>
         <?php endif; ?>
 
         <?php if(isset($_GET['registered'])): ?>
-            <div style="color: var(--success); background: #C6F6D5; padding: 14px; border-radius: 8px; margin-bottom: 24px; font-size: 14px; border-left: 4px solid var(--success);">
+            <div class="alert alert-success">
                 <i class="fas fa-check-circle"></i> Kayıt işlemi başarılı! Giriş yapabilirsiniz
             </div>
         <?php endif; ?>
@@ -329,8 +312,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <input type="password" name="password" id="password"
                            class="form-control" placeholder="••••••••" required>
                     <span class="password-toggle" id="togglePassword">
-                            <i class="far fa-eye"></i>
-                        </span>
+                        <i class="far fa-eye"></i>
+                    </span>
                 </div>
                 <div style="text-align: right; margin-top: 8px;">
                     <a href="forgot-password.php" style="color: var(--primary); font-size: 13px; text-decoration: none;">
@@ -343,21 +326,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fas fa-sign-in-alt"></i> Giriş Yap
             </button>
         </form>
-
-        <div class="social-login">
-            <div class="social-divider">veya</div>
-            <div class="social-buttons">
-                <button type="button" class="social-btn">
-                    <img src="/assets/images/google-icon.png" alt="Google">
-                </button>
-                <button type="button" class="social-btn">
-                    <img src="/assets/images/facebook-icon.png" alt="Facebook">
-                </button>
-                <button type="button" class="social-btn">
-                    <img src="/assets/images/apple-icon.png" alt="Apple">
-                </button>
-            </div>
-        </div>
 
         <div class="auth-footer">
             Hesabınız yok mu? <a href="register.php">Kayıt Olun</a>

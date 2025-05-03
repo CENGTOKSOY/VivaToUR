@@ -1,13 +1,9 @@
-<IfModule mod_rewrite.c>
-    RewriteEngine On
+RewriteEngine On
+RewriteBase /VivaToUR/
 
-    # API için CORS izinleri
-    Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type, Authorization"
+# Mevcut dosya veya dizinler için
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 
-    # 404 hatalarını önle
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^api/(.*)$ api/$1 [L]
-</IfModule>
+# Tüm istekleri index.php'ye yönlendir
+RewriteRule ^(.*)$ index.php [QSA,L]

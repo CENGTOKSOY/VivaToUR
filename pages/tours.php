@@ -9,39 +9,74 @@ $isLoggedIn = isset($_SESSION['user_id']);
 $userName = $isLoggedIn ? $_SESSION['user_name'] : '';
 $userId = $isLoggedIn ? $_SESSION['user_id'] : null;
 
-// Tüm aktif turları çek
-try {
-    $stmt = $conn->query("SELECT * FROM tours WHERE active = true ORDER BY created_at DESC");
-    $allTours = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    error_log("Turlar çekilirken hata: " . $e->getMessage());
-    $allTours = [];
-}
+// API isteği kontrolü
+if (isset($_GET['api']) && $_GET['api'] == '1') {
+    header('Content-Type: application/json');
 
-// Filtreleme parametreleri
-$typeFilter = $_GET['type'] ?? '';
-$locationFilter = $_GET['location'] ?? '';
-$dateFilter = $_GET['date'] ?? '';
+    try {
+        $query = "SELECT * FROM tours WHERE active = true";
+        $params = [];
 
-// Filtre uygulanmış turları çek
-$filteredTours = $allTours;
+        // Filtreleme parametreleri
+        $typeFilter = $_GET['type'] ?? '';
+        $locationFilter = $_GET['location'] ?? '';
+        $dateFilter = $_GET['date'] ?? '';
 
-if (!empty($typeFilter)) {
-    $filteredTours = array_filter($filteredTours, function($tour) use ($typeFilter) {
-        return $tour['type'] === $typeFilter;
-    });
-}
+        if (!empty($typeFilter)) {
+            $query .= " AND type = :type";
+            $params[':type'] = $typeFilter;
+        }
 
-if (!empty($locationFilter)) {
-    $filteredTours = array_filter($filteredTours, function($tour) use ($locationFilter) {
-        return stripos($tour['location'], $locationFilter) !== false;
-    });
-}
+        if (!empty($locationFilter)) {
+            $query .= " AND location LIKE :location";
+            $params[':location'] = '%' . $locationFilter . '%';
+        }
 
-if (!empty($dateFilter)) {
-    $filteredTours = array_filter($filteredTours, function($tour) use ($dateFilter) {
-        return date('Y-m-d', strtotime($tour['date'])) === $dateFilter;
-    });
+        if (!empty($dateFilter)) {
+            $query .= " AND DATE(date) = :date";
+            $params[':date'] = $dateFilter;
+        }
+
+        $query .= " ORDER BY created_at DESC";
+
+        $stmt = $conn->prepare($query);
+        $stmt->execute($params);
+        $tours = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // Tur verilerini formatla
+        $formattedTours = [];
+        foreach ($tours as $tour) {
+            $imageParts = explode('_', $tour['image']);
+            $imageFile = end($imageParts);
+            $imagePath = !empty($tour['image']) ? '../assets/images/tours/' . $imageFile : '../assets/images/tour-default.jpg';
+
+            $typeLabels = [
+                'cultural' => 'Kültürel',
+                'festival' => 'Festival',
+                'adaptation' => 'Adaptasyon',
+                'historical' => 'Tarihi'
+            ];
+
+            $formattedTours[] = [
+                'id' => $tour['id'],
+                'name' => htmlspecialchars($tour['name']),
+                'location' => htmlspecialchars($tour['location']),
+                'date' => date('d.m.Y', strtotime($tour['date'])),
+                'type' => $typeLabels[$tour['type']] ?? $tour['type'],
+                'short_description' => htmlspecialchars($tour['short_description']),
+                'price' => number_format($tour['price'], 2),
+                'featured' => $tour['featured'],
+                'image' => $imagePath,
+                'is_logged_in' => $isLoggedIn
+            ];
+        }
+
+        echo json_encode(['success' => true, 'tours' => $formattedTours]);
+    } catch (PDOException $e) {
+        error_log("Turlar çekilirken hata: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Turlar çekilirken hata oluştu']);
+    }
+    exit;
 }
 
 // Kullanıcı rezervasyon bilgileri
@@ -554,6 +589,27 @@ if ($isLoggedIn) {
             border-color: var(--viva-orange);
         }
 
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 122, 0, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--viva-orange);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         footer {
             background: var(--viva-dark);
             color: white;
@@ -625,8 +681,8 @@ if ($isLoggedIn) {
             <?php if($isLoggedIn): ?>
                 <span>Hoş geldiniz, <?= htmlspecialchars($userName) ?></span>
                 <div class="user-avatar"><?= strtoupper(substr($userName, 0, 1)) ?></div>
-                <a href="profile.php" style="color: white;"><i class="fas fa-user"></i></a>
-                <a href="logout.php" style="color: white;"><i class="fas fa-sign-out-alt"></i></a>
+                <a href="user/profile.php" style="color: white;"><i class="fas fa-user"></i></a>
+                <a href="auth/logout.php" style="color: white;"><i class="fas fa-sign-out-alt"></i></a>
             <?php else: ?>
                 <a href="auth/login.php" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Giriş Yap</a>
                 <a href="auth/register.php" class="btn btn-primary" style="padding: 0.5rem 1rem;">Kayıt Ol</a>
@@ -641,7 +697,7 @@ if ($isLoggedIn) {
     <a href="contact.php"><i class="fas fa-envelope"></i> İletişim</a>
     <a href="about.php"><i class="fas fa-info-circle"></i> Hakkımızda</a>
     <?php if($isLoggedIn): ?>
-        <a href="my-bookings.php"><i class="fas fa-suitcase"></i> Rezervasyonlarım</a>
+        <a href="user/bookings.php"><i class="fas fa-suitcase"></i> Rezervasyonlarım</a>
     <?php endif; ?>
 </nav>
 
@@ -659,17 +715,17 @@ if ($isLoggedIn) {
             <i class="fas fa-chevron-down"></i>
         </div>
         <div class="filters-content">
-            <form method="GET" action="tours.php">
+            <form id="filter-form">
                 <div class="filter-grid">
                     <div class="filter-group">
                         <label for="type" class="filter-label">Tur Türü</label>
                         <div class="select-wrapper">
                             <select id="type" name="type" class="filter-select">
                                 <option value="">Tüm Tur Türleri</option>
-                                <option value="cultural" <?= ($typeFilter === 'cultural') ? 'selected' : '' ?>>Kültürel Tur</option>
-                                <option value="festival" <?= ($typeFilter === 'festival') ? 'selected' : '' ?>>Festival Turu</option>
-                                <option value="adaptation" <?= ($typeFilter === 'adaptation') ? 'selected' : '' ?>>Adaptasyon Turu</option>
-                                <option value="historical" <?= ($typeFilter === 'historical') ? 'selected' : '' ?>>Tarihi Tur</option>
+                                <option value="cultural">Kültürel Tur</option>
+                                <option value="festival">Festival Turu</option>
+                                <option value="adaptation">Adaptasyon Turu</option>
+                                <option value="historical">Tarihi Tur</option>
                             </select>
                         </div>
                     </div>
@@ -677,15 +733,13 @@ if ($isLoggedIn) {
                     <div class="filter-group">
                         <label for="location" class="filter-label">Lokasyon</label>
                         <input type="text" id="location" name="location" class="filter-input"
-                               placeholder="İstanbul, Ankara, İzmir..."
-                               value="<?= !empty($locationFilter) ? htmlspecialchars($locationFilter) : '' ?>">
+                               placeholder="İstanbul, Ankara, İzmir...">
                     </div>
 
                     <div class="filter-group">
                         <label for="date" class="filter-label">Tarih</label>
                         <div class="date-input-wrapper">
-                            <input type="date" id="date" name="date" class="filter-input"
-                                   value="<?= !empty($dateFilter) ? htmlspecialchars($dateFilter) : '' ?>">
+                            <input type="date" id="date" name="date" class="filter-input">
                         </div>
                     </div>
 
@@ -693,9 +747,9 @@ if ($isLoggedIn) {
                         <button type="submit" class="filter-button">
                             <i class="fas fa-search"></i> Filtrele
                         </button>
-                        <a href="tours.php" class="reset-button">
+                        <button type="reset" id="reset-filters" class="reset-button">
                             <i class="fas fa-undo"></i> Sıfırla
-                        </a>
+                        </button>
                     </div>
                 </div>
             </form>
@@ -705,67 +759,19 @@ if ($isLoggedIn) {
     <section class="all-tours">
         <h2 class="section-title"><i class="fas fa-umbrella-beach"></i> Tüm Turlar</h2>
 
-        <?php if (!empty($_GET) && empty($filteredTours)): ?>
-            <div class="empty-message">
-                <p>Seçtiğiniz filtrelerle eşleşen tur bulunamadı.</p>
-                <a href="tours.php" class="btn btn-primary">Tüm Turları Göster</a>
-            </div>
-        <?php elseif (empty($allTours)): ?>
-            <div class="empty-message">
-                <p>Şu anda tur bulunmamaktadır.</p>
-            </div>
-        <?php else: ?>
-            <div class="tour-grid">
-                <?php foreach ($filteredTours as $tour):
-                    $imageParts = explode('_', $tour['image']);
-                    $imageFile = end($imageParts);
-                    $imagePath = !empty($tour['image']) ? '../assets/images/tours/' . $imageFile : '../assets/images/tour-default.jpg';
+        <div id="loading-spinner" class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Turlar yükleniyor...</p>
+        </div>
 
-                    $typeLabels = [
-                        'cultural' => 'Kültürel',
-                        'festival' => 'Festival',
-                        'adaptation' => 'Adaptasyon',
-                        'historical' => 'Tarihi'
-                    ];
-                    ?>
-                    <div class="tour-card">
-                        <div class="tour-image" style="background-image: url('<?= $imagePath ?>');">
-                            <?php if ($tour['featured']): ?>
-                                <span class="tour-badge">Öne Çıkan</span>
-                            <?php endif; ?>
-                            <span class="tour-price"><?= number_format($tour['price'], 2) ?> TL</span>
-                        </div>
-                        <div class="tour-content">
-                            <h3 class="tour-title"><?= htmlspecialchars($tour['name']) ?></h3>
-                            <div class="tour-meta">
-                                <span><i class="fas fa-map-marker-alt"></i> <?= htmlspecialchars($tour['location']) ?></span>
-                                <span><i class="fas fa-calendar-alt"></i> <?= date('d.m.Y', strtotime($tour['date'])) ?></span>
-                            </div>
-                            <div class="tour-meta">
-                                <span><i class="fas fa-tag"></i> <?= $typeLabels[$tour['type']] ?? $tour['type'] ?></span>
-                            </div>
-                            <p class="tour-description"><?= htmlspecialchars($tour['short_description']) ?></p>
-                            <div class="tour-actions">
-                                <a href="detail.php?id=<?= $tour['id'] ?>" class="btn btn-primary btn-sm">Detaylar</a>
-                                <?php if($isLoggedIn): ?>
-                                    <button class="btn btn-secondary btn-sm favorite-btn" data-tour-id="<?= $tour['id'] ?>">
-                                        <i class="far fa-heart"></i> Favori
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
+        <div id="empty-message" class="empty-message" style="display: none;">
+            <p>Seçtiğiniz filtrelerle eşleşen tur bulunamadı.</p>
+            <button id="show-all-tours" class="btn btn-primary">Tüm Turları Göster</button>
+        </div>
 
-            <!-- Basit sayfalama (isteğe bağlı) -->
-            <div class="pagination">
-                <a href="#" class="page-link active">1</a>
-                <a href="#" class="page-link">2</a>
-                <a href="#" class="page-link">3</a>
-                <a href="#" class="page-link">Sonraki</a>
-            </div>
-        <?php endif; ?>
+        <div class="tour-grid" id="tour-grid">
+            <!-- Turlar buraya AJAX ile yüklenecek -->
+        </div>
     </section>
 </div>
 
@@ -806,33 +812,168 @@ if ($isLoggedIn) {
             }
         }
 
-        // Favori butonları
-        document.querySelectorAll('.favorite-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const tourId = this.dataset.tourId;
-                const icon = this.querySelector('i');
+        // URL'den filtre parametrelerini al
+        function getFilterParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                type: params.get('type') || '',
+                location: params.get('location') || '',
+                date: params.get('date') || ''
+            };
+        }
 
-                fetch('../api/toggle_favorite.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tour_id: tourId })
+        // Filtre formunu URL'den gelen parametrelerle doldur
+        function populateFormFromUrl() {
+            const filters = getFilterParams();
+            document.getElementById('type').value = filters.type;
+            document.getElementById('location').value = filters.location;
+            document.getElementById('date').value = filters.date;
+        }
+
+        // Sayfa yüklendiğinde formu doldur ve turları getir
+        populateFormFromUrl();
+        fetchTours();
+
+        // Filtreleme formu gönderimi
+        document.getElementById('filter-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const type = document.getElementById('type').value;
+            const location = document.getElementById('location').value;
+            const date = document.getElementById('date').value;
+
+            // URL'yi güncelle (sayfa yenilenmeden)
+            const params = new URLSearchParams();
+            if (type) params.set('type', type);
+            if (location) params.set('location', location);
+            if (date) params.set('date', date);
+
+            const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.pushState({}, '', newUrl);
+
+            // Turları getir
+            fetchTours();
+        });
+
+        // Filtreleri sıfırla
+        document.getElementById('reset-filters').addEventListener('click', function() {
+            window.history.pushState({}, '', window.location.pathname);
+            populateFormFromUrl();
+            fetchTours();
+        });
+
+        // Tüm turları göster butonu
+        document.getElementById('show-all-tours').addEventListener('click', function() {
+            window.history.pushState({}, '', window.location.pathname);
+            populateFormFromUrl();
+            fetchTours();
+        });
+
+        // Turları getir fonksiyonu
+        function fetchTours() {
+            const loadingSpinner = document.getElementById('loading-spinner');
+            const emptyMessage = document.getElementById('empty-message');
+            const tourGrid = document.getElementById('tour-grid');
+
+            loadingSpinner.style.display = 'block';
+            emptyMessage.style.display = 'none';
+            tourGrid.innerHTML = '';
+
+            const filters = getFilterParams();
+            const params = new URLSearchParams();
+            params.set('api', '1');
+            if (filters.type) params.set('type', filters.type);
+            if (filters.location) params.set('location', filters.location);
+            if (filters.date) params.set('date', filters.date);
+
+            fetch(`tours.php?${params.toString()}`)
+                .then(response => response.json())
+                .then(data => {
+                    loadingSpinner.style.display = 'none';
+
+                    if (data.success && data.tours.length > 0) {
+                        renderTours(data.tours);
+                    } else {
+                        emptyMessage.style.display = 'block';
+                    }
                 })
-                    .then(response => response.json())
-                    .then(data => {
-                        if(data.success) {
-                            if(data.is_favorite) {
-                                icon.classList.replace('far', 'fas');
-                                this.classList.add('active');
-                            } else {
-                                icon.classList.replace('fas', 'far');
-                                this.classList.remove('active');
-                            }
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Hata:', error);
-                    });
+                .catch(error => {
+                    console.error('Hata:', error);
+                    loadingSpinner.style.display = 'none';
+                    emptyMessage.style.display = 'block';
+                });
+        }
+
+        // Turları render et
+        function renderTours(tours) {
+            const tourGrid = document.getElementById('tour-grid');
+            tourGrid.innerHTML = '';
+
+            tours.forEach(tour => {
+                const tourCard = document.createElement('div');
+                tourCard.className = 'tour-card';
+                tourCard.innerHTML = `
+                    <div class="tour-image" style="background-image: url('${tour.image}');">
+                        ${tour.featured ? '<span class="tour-badge">Öne Çıkan</span>' : ''}
+                        <span class="tour-price">${tour.price} TL</span>
+                    </div>
+                    <div class="tour-content">
+                        <h3 class="tour-title">${tour.name}</h3>
+                        <div class="tour-meta">
+                            <span><i class="fas fa-map-marker-alt"></i> ${tour.location}</span>
+                            <span><i class="fas fa-calendar-alt"></i> ${tour.date}</span>
+                        </div>
+                        <div class="tour-meta">
+                            <span><i class="fas fa-tag"></i> ${tour.type}</span>
+                        </div>
+                        <p class="tour-description">${tour.short_description}</p>
+                        <div class="tour-actions">
+                            <a href="detail.php?id=${tour.id}" class="btn btn-primary btn-sm">Detaylar</a>
+                            ${tour.is_logged_in ? `
+                                <button class="btn btn-secondary btn-sm favorite-btn" data-tour-id="${tour.id}">
+                                    <i class="far fa-heart"></i> Favori
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                tourGrid.appendChild(tourCard);
             });
+
+            // Favori butonlarına event listener ekle
+            document.querySelectorAll('.favorite-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const tourId = this.dataset.tourId;
+                    const icon = this.querySelector('i');
+
+                    fetch('../api/toggle_favorite.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ tour_id: tourId })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if(data.success) {
+                                if(data.is_favorite) {
+                                    icon.classList.replace('far', 'fas');
+                                    this.classList.add('active');
+                                } else {
+                                    icon.classList.replace('fas', 'far');
+                                    this.classList.remove('active');
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Hata:', error);
+                        });
+                });
+            });
+        }
+
+        // Popstate event (geri/ileri butonları için)
+        window.addEventListener('popstate', function() {
+            populateFormFromUrl();
+            fetchTours();
         });
     });
 </script>

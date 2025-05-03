@@ -332,8 +332,8 @@ $typeLabels = [
             <?php if($isLoggedIn): ?>
                 <span>Hoş geldiniz, <?= htmlspecialchars($userName) ?></span>
                 <div class="user-avatar"><?= strtoupper(substr($userName, 0, 1)) ?></div>
-                <a href="profile.php" style="color: white;"><i class="fas fa-user"></i></a>
-                <a href="logout.php" style="color: white;"><i class="fas fa-sign-out-alt"></i></a>
+                <a href="user/profile.php" style="color: white;"><i class="fas fa-user"></i></a>
+                <a href="auth/logout.php" style="color: white;"><i class="fas fa-sign-out-alt"></i></a>
             <?php else: ?>
                 <a href="auth/login.php" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Giriş Yap</a>
                 <a href="auth/register.php" class="btn btn-primary" style="padding: 0.5rem 1rem;">Kayıt Ol</a>
@@ -348,7 +348,7 @@ $typeLabels = [
     <a href="contact.php"><i class="fas fa-envelope"></i> İletişim</a>
     <a href="about.php"><i class="fas fa-info-circle"></i> Hakkımızda</a>
     <?php if($isLoggedIn): ?>
-        <a href="my-bookings.php"><i class="fas fa-suitcase"></i> Rezervasyonlarım</a>
+        <a href="user/bookings.php"><i class="fas fa-suitcase"></i> Rezervasyonlarım</a>
     <?php endif; ?>
 </nav>
 
@@ -434,6 +434,33 @@ $typeLabels = [
                 <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Müze giriş ücretleri</li>
             </ul>
         </div>
+
+        <div class="detail-card">
+            <h2 class="card-title">
+                <i class="fas fa-clipboard-check"></i>
+                Dahil Olanlar
+            </h2>
+            <ul style="list-style-type: none; color: #555; line-height: 2;">
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Profesyonel rehberlik</li>
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Ulaşım</li>
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Öğle yemeği</li>
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Müze giriş ücretleri</li>
+            </ul>
+        </div>
+
+        <div class="detail-card">
+            <h2 class="card-title">
+                <i class="fas fa-clipboard-check"></i>
+                Dahil Olanlar
+            </h2>
+            <ul style="list-style-type: none; color: #555; line-height: 2;">
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Profesyonel rehberlik</li>
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Ulaşım</li>
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Öğle yemeği</li>
+                <li><i class="fas fa-check-circle" style="color: var(--viva-orange);"></i> Müze giriş ücretleri</li>
+            </ul>
+        </div>
+
     </section>
 
     <div class="action-container">
