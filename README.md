@@ -1,7 +1,3 @@
-Tamam 👌 Aşağıya tek parça, doğrudan kopyala-yapıştır yapılabilir, temiz ve profesyonel bir README.md bırakıyorum. GitHub’a direkt eklediğinde format bozulmaz.
-
-⸻
-
 
 # 🌍 VivaToUR
 
