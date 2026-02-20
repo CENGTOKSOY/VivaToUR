@@ -1,10 +1,8 @@
-
 # 🌍 VivaToUR
 
 > A Cultural & Festival Tour Booking Platform
 
-VivaToUR is a web-based tour management and booking platform developed for cultural and festival-based travel experiences.  
-The platform allows users to explore available tours, apply dynamic filters, and complete reservations through an interactive and responsive interface.
+VivaToUR is a web-based tour management and booking platform developed for cultural and festival-based travel experiences. The platform allows users to explore available tours, apply dynamic filters, and complete reservations through an interactive and responsive interface.
 
 The project is built using **PHP**, **PostgreSQL**, and **JavaScript**, with **AJAX-powered dynamic filtering and booking workflows** to provide a seamless user experience.
 
@@ -33,8 +31,9 @@ The project is built using **PHP**, **PostgreSQL**, and **JavaScript**, with **A
 
 ---
 
-## 📂 Project Structure (General Overview)
+## 📂 Project Structure
 
+```
 VivaToUR/
 │
 ├── assets/          # Static files (CSS, JS, images)
@@ -43,125 +42,124 @@ VivaToUR/
 ├── database/        # SQL files (if included)
 ├── index.php        # Main entry point
 └── README.md
+```
 
 ---
 
 ## 🚀 Installation & Setup
 
-Follow these steps to run the project locally:
-
 ### 1️⃣ Clone the Repository
 
 ```bash
 git clone https://github.com/CENGTOKSOY/VivaToUR.git
-
 cd VivaToUR
+```
 
-
-⸻
-
-2️⃣ Database Setup
-	•	Install PostgreSQL
-	•	Create a new database (e.g., vivatour_db)
-	•	Import the provided SQL file (if available)
-	•	Update database credentials inside the configuration file (e.g., config.php)
+### 2️⃣ Database Setup
+- Install PostgreSQL
+- Create a new database (e.g., `vivatour_db`)
+- Import the provided SQL file (if available)
+- Update database credentials inside the configuration file (e.g., `config.php`)
 
 Example configuration:
-
+```php
 $host = "localhost";
 $dbname = "vivatour_db";
 $user = "your_username";
 $password = "your_password";
+```
 
-
-⸻
-
-3️⃣ Run the Project
+### 3️⃣ Run the Project
 
 You can run the project using:
-	•	XAMPP / MAMP
-	•	PHP built-in server:
-
+- **XAMPP / MAMP**
+- **PHP built-in server:**
+```bash
 php -S localhost:8000
+```
 
 Then open:
-
+```
 http://localhost:8000
+```
 
+---
 
-⸻
+## 🧑‍💻 How It Works
 
-🧑‍💻 How It Works
-	1.	Users browse available tours.
-	2.	Filters dynamically update tour listings using AJAX.
-	3.	Users select a tour and proceed with reservation.
-	4.	Payment flow is processed.
-	5.	Reservation details are stored in the PostgreSQL database.
+1. Users browse available tours
+2. Filters dynamically update tour listings using AJAX
+3. Users select a tour and proceed with reservation
+4. Payment flow is processed
+5. Reservation details are stored in the PostgreSQL database
 
-⸻
+---
 
-🎯 Purpose of the Project
+## 🎯 Purpose of the Project
 
 VivaToUR was developed to:
-	•	Demonstrate full-stack web development skills
-	•	Implement real-world booking logic
-	•	Integrate database-driven dynamic filtering
-	•	Practice asynchronous request handling with AJAX
-	•	Build a scalable backend structure using PHP
+- Demonstrate full-stack web development skills
+- Implement real-world booking logic
+- Integrate database-driven dynamic filtering
+- Practice asynchronous request handling with AJAX
+- Build a scalable backend structure using PHP
 
-⸻
+---
 
-🔒 Security Considerations
-	•	Database queries should use prepared statements
-	•	Input validation and sanitization are recommended
-	•	Payment workflows should be secured in production
-	•	Environment variables should be used for sensitive data
+## 🔒 Security Considerations
 
-⸻
+- Database queries should use prepared statements
+- Input validation and sanitization are recommended
+- Payment workflows should be secured in production
+- Environment variables should be used for sensitive data
 
-📈 Future Improvements
-	•	✅ Admin dashboard for tour management
-	•	✅ User authentication system
-	•	✅ Role-based authorization
-	•	✅ Real payment gateway integration
-	•	✅ REST API structure
-	•	✅ Deployment to cloud (AWS / Azure)
+---
 
-⸻
+## 📈 Future Improvements
 
-🤝 Contributing
+- [ ] Admin dashboard for tour management
+- [ ] User authentication system
+- [ ] Role-based authorization
+- [ ] Real payment gateway integration
+- [ ] REST API structure
+- [ ] Deployment to cloud (AWS / Azure)
+
+---
+
+## 🤝 Contributing
 
 Contributions are welcome!
-	1.	Fork the repository
-	2.	Create your feature branch
 
-git checkout -b feature/YourFeature
+1. Fork the repository
+2. Create your feature branch
+   ```bash
+   git checkout -b feature/YourFeature
+   ```
+3. Commit your changes
+   ```bash
+   git commit -m "Add YourFeature"
+   ```
+4. Push to the branch
+   ```bash
+   git push origin feature/YourFeature
+   ```
+5. Open a Pull Request
 
+---
 
-	3.	Commit your changes
-
-git commit -m "Add YourFeature"
-
-
-	4.	Push to the branch
-
-git push origin feature/YourFeature
-
-
-	5.	Open a Pull Request
-
-⸻
-
-📜 License
+## 📜 License
 
 This project is open-source and available for educational and development purposes.
 
-⸻
+---
 
-👤 Author
+## 👤 Author
 
-Developed by Ali Toksoy
-GitHub: https://github.com/CENGTOKSOY
+**Ali Toksoy**  
+GitHub: [@CENGTOKSOY](https://github.com/CENGTOKSOY)
 
-⸻
+---
 
+## ⭐ Support
+
+If you find this project useful, consider giving it a star ⭐ on GitHub!
