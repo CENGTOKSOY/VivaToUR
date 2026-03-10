@@ -261,6 +261,7 @@
         });
     </script>
 
+
 <?php
 // Sayfanın geri kalanı için gerekli kapanış etiketleri
 if (!defined('FOOTER_INCLUDED')) {
