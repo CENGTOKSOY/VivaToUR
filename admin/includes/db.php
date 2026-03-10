@@ -1,10 +1,14 @@
 <?php
 // includes/db.php
 
-$host = 'localhost';
+$host = 'db';
 $dbname = 'vivatour_db';
 $user = 'postgres';
 $password = 'postgresql123';
+// YENİ VE GÜVENLİ HALİ:
+if (!defined('S3_BASE_URL')) {
+    define('S3_BASE_URL', 'http://localhost:4566/vivatour-assets/images/');
+}
 
 try {
     // Düzeltilmiş bağlantı dizesi

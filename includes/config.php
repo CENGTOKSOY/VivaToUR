@@ -2,13 +2,15 @@
 // includes/config.php
 
 // Veritabanı bağlantı bilgileri
-define('DB_HOST', 'localhost');
+define('DB_HOST', 'db');
 define('DB_NAME', 'vivatour_db');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 
 // BASE_URL tanımı (PROJE KÖKÜ)
 define('BASE_URL', '/VivaToUR/');
+// Bulut depolama (LocalStack S3) ana URL'miz
+define('S3_BASE_URL', 'http://localhost:4566/vivatour-assets/images/');
 
 // Diğer sabitler
 define('SITE_NAME', 'VivaToUR');

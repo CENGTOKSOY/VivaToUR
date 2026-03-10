@@ -529,9 +529,11 @@ if ($isLoggedIn) {
             <div class="carousel-container">
                 <div class="featured-tours-carousel">
                     <?php foreach ($featuredTours as $tour):
-                        $imageParts = explode('_', $tour['image']);
-                        $imageFile = end($imageParts);
-                        $imagePath = !empty($tour['image']) ? '../assets/images/tours/' . $imageFile : '../assets/images/tour-default.jpg';
+                        // Eski 'explode' ve yerel dosya arama mantığı tamamen çöpe gitti!
+                        // Artık doğrudan S3 URL'sini oluşturuyoruz.
+                        $imagePath = !empty($tour['image'])
+                            ? S3_BASE_URL . 'tours/' . $tour['image']
+                            : S3_BASE_URL . 'tour-default.jpg';
                         ?>
                         <div class="tour-card">
                             <div class="tour-image" style="background-image: url('<?= $imagePath ?>');">
@@ -552,12 +554,6 @@ if ($isLoggedIn) {
                         </div>
                     <?php endforeach; ?>
                 </div>
-            </div>
-        <?php endif; ?>
-
-        <?php if(!empty($featuredTours)): ?>
-            <div style="text-align: center; margin-top: 2rem;">
-                <a href="tours.php" class="btn btn-primary">Tüm Turları Gör</a>
             </div>
         <?php endif; ?>
     </section>

@@ -23,15 +23,17 @@ try {
         exit;
     }
 
-    // Görsel yolunu hazırla
-    $imagePath = '../assets/images/tour-default.jpg';
+// config.php içine S3_BASE_URL
+// ('S3_BASE_URL', 'http://localhost:4566/vivatour-assets/images/'); yazabilirsin)
+
+// 1. Varsayılan görseli doğrudan S3'ten al
+    $imagePath = S3_BASE_URL . 'tour-default.jpg';
+
+// 2. Eğer tur için özel bir görsel yüklenmişse, S3 URL'sini oluştur
     if (!empty($tour['image'])) {
-        $imageParts = explode('_', $tour['image']);
-        $imageFile = end($imageParts);
-        $potentialPath = '../assets/images/tours/' . $imageFile;
-        if (file_exists($potentialPath)) {
-            $imagePath = $potentialPath;
-        }
+        // Bulut mimarisinde file_exists ile HTTP isteği yapmak siteyi yavaşlatır.
+        // Veritabanındaki dosya adını doğrudan URL'ye ekliyoruz.
+        $imagePath = S3_BASE_URL . 'tours/' . $tour['image'];
     }
 
 } catch (PDOException $e) {
@@ -465,7 +467,7 @@ $typeLabels = [
 
     <div class="action-container">
         <?php if($isLoggedIn): ?>
-            <a href="booking.php?tour_id=<?= $tour['id'] ?>" class="btn-book">
+            <a href="/pages/booking/checkout.php?tour_id=<?= $tour['id'] ?>" class="btn-book">
                 <i class="fas fa-ticket-alt"></i>
                 Hemen Rezervasyon Yap
             </a>
